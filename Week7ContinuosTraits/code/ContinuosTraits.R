@@ -1,30 +1,30 @@
-library(ape) #utility fns
-library(geiger) #utilty fns
-library(OUwie)
-library(fishtree)
-library(tidyverse)
+source("code/functions.R")
+source("code/package.R")
 
-continuous.data <- read.csv("D:/OneDrive - Pontificia Universidad Javeriana/Documents/NutritionalValuesFishes/Nutrients_EntireDataSet.csv")
+
+continuous.data <- read.csv("D:/OneDrive - Pontificia Universidad Javeriana/Documents/NutritionalValuesFishes/data/Nutrients_EntireDataSet_AllSpecies.csv")
 tree <- fishtree_phylogeny(type="chronogram")
 
 CleanData <- function(data, phylo) {
  
   data$Species <- gsub(' ', '_' , continuous.data$Species)
+  
   data <- data %>%
     group_by(Species) %>%
-    summarize(mean_Pr = mean(Pr)) %>%
+    summarize(mean_Pr = mean(Pr, na.rm=T)) %>%
     drop_na()  %>%
     filter(Species %in% phylo$tip.label)
   
   trait <- as.numeric(data$mean_Pr)
   names(trait) <- data$Species
   
-  datatree <- treedata(tree, trait)
+  datatree <- geiger::treedata(tree, as.data.frame(trait))
   return(datatree)
  
 }
 
 data <- CleanData(continuous.data, tree)
+
 VisualizeData <- function(phy, data) {
   phytools::contMap(phy, data)
 }
@@ -34,8 +34,8 @@ BM1 <- geiger::fitContinuous(data$phy, data$data, model="BM")
 print(paste("The rate of evolution is", BM1$opt$sigsq, "in units of", "time"))
 
 
-OU1 <- fitContinuous(data$phy, data$data, model="OU")
-#par(mfcol(c(1,2)))
+OU1 <- fitContinuous(phytools::force.ultrametric(data$phy), data$data, model="OU")
+par(mfcol(c(1,2)))
 plot(tree, show.tip.label=FALSE)
 ou.tree <- rescale(tree, model="OU", OU1$opt$alpha)
 plot(ou.tree)
@@ -48,7 +48,7 @@ delta.AIC.OU1 <- AIC.OU1 - min(AIC.BM1, AIC.OU1)
 ##OUwie runs##
 
 one.discrete.char <- as.numeric(data$data < mean(data$data))
-reconstruction.info <- ace(one.discrete.char, data$phy, type="discrete", method="ML", CI=TRUE)
+reconstruction.info <- ace(one.discrete.char, phytools::force.ultrametric(data$phy), type="discrete", method="ML", CI=TRUE)
 best.states <- colnames(reconstruction.info$lik.anc)[apply(reconstruction.info$lik.anc, 1, which.max)]
 
 clean.df <- function(data, trait.name){
@@ -61,12 +61,14 @@ clean.df <- function(data, trait.name){
   return(data.df)
 }
 
-cont.data <- data.frame(species=rownames(data$data), regime=best.states, trait=data$data[,1])
+cont.data <- data.frame(species=rownames(data$data), regime=one.discrete.char, trait=data$data[,1])
 
 labeled.tree <- data$phy
 labeled.tree$node.label <- best.states
-nodeBased.OUMV <- OUwie(data$phy, cont.data, model="OUMV", simmap.tree=FALSE, diagn=FALSE)
+
+nodeBased.OUMV <- OUwie(labeled.tree, cont.data, model="OUMV", simmap.tree=FALSE, diagn=FALSE)
 print(nodeBased.OUMV)
+# What do the numbers mean?
 
 models <- c("BM1","BMS","OU1","OUM","OUMV","OUMA","OUMVA")
 results <- lapply(models, RunSingleOUwieModel, phy=tree, data=trait)

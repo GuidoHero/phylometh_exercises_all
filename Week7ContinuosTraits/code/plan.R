@@ -1,41 +1,12 @@
-library(ape) #utility fns
-library(geiger) #utilty fns
-library(OUwie)
-library(fishtree)
-library(tidyverse)
-
-continuous.data <- read.csv("D:/OneDrive - Pontificia Universidad Javeriana/Documents/NutritionalValuesFishes/Nutrients_EntireDataSet.csv")
-tree <- fishtree_phylogeny(type="chronogram")
-
-CleanData <- function(data, phylo) {
- 
-  data$Species <- gsub(' ', '_' , continuous.data$Species)
-  data <- data %>%
-    group_by(Species) %>%
-    summarize(mean_Pr = mean(Pr)) %>%
-    drop_na()  %>%
-    filter(Species %in% phylo$tip.label)
-  
-  trait <- as.numeric(data$mean_Pr)
-  names(trait) <- data$Species
-  
-  datatree <- treedata(tree, trait)
-  return(datatree)
- 
-}
-
-data <- CleanData(continuous.data, tree)
-VisualizeData <- function(phy, data) {
-  phytools::contMap(phy, data)
-}
-
-#### This is how is fitted here
-BM1 <- geiger::fitContinuous(data$phy, data$data, model="BM")
-print(paste("The rate of evolution is", BM1$opt$sigsq, "in units of", "time"))
-
-
-OU1 <- fitContinuous(data$phy, data$data, model="OU")
-#par(mfcol(c(1,2)))
+plan <- drake_plan(
+  tree <- fishtree_phylogeny(type="chronogram"), 
+  continuous.data <- read.csv("D:/OneDrive - Pontificia Universidad Javeriana/Documents/NutritionalValuesFishes/Nutrients_EntireDataSet.csv"), 
+  data.clean <- CleanData(continuous.data, tree),
+  plot.trait <- VisualizeData(data.clean$phy, data.clean$data),
+  BM1 <- geiger::fitContinuous(data$phy, data$data, model="BM")
+  print(paste("The rate of evolution is", BM1$opt$sigsq, "in units of", "time")),
+  OU1 <- fitContinuous(data$phy, data$data, model="OU")
+par(mfcol(c(1,2)))
 plot(tree, show.tip.label=FALSE)
 ou.tree <- rescale(tree, model="OU", OU1$opt$alpha)
 plot(ou.tree)
