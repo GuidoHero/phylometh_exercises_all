@@ -1,17 +1,19 @@
 CleanData <- function(data, phylo) {
-  data$Species <- gsub(' ', '_' , continuous.data$Species)
-  data <- data %>%
+  data$Species <- gsub(' ', '_' , data$Species)
+  
+  data <- data %>% 
+    filter(Food.Type == "FreshFish") %>% 
+    filter(Tissue== "Edible parts")  %>% 
     group_by(Species) %>%
-    summarize(mean_Pr = mean(Pr)) %>%
+    summarize(mean_Pr = mean(Pr, na.rm=T)) %>%
     drop_na()  %>%
-    filter(Species %in% phylo$tip.label)
+    filter(Species %in% phylo$tip.label) 
   
   trait <- as.numeric(data$mean_Pr)
   names(trait) <- data$Species
   
-  datatree <- treedata(tree, trait)
+  datatree <- geiger::treedata(tree, as.data.frame(trait))
   return(datatree)
-  
 }
 
 clean.df <- function(data, trait.name){
@@ -26,7 +28,7 @@ clean.df <- function(data, trait.name){
 
 VisualizeData <- function (tree, trait){
   circplot <- ggtree(tree, layout = "circular")
-  cirplot.trait <- gheatmap(p8, trait, width=.15, colnames = F, color=NULL) + 
+  cirplot.trait <- gheatmap(circplot , trait, width=.15, colnames = F, color=NULL) + 
                   scale_fill_viridis_c(option="D") 
-  return(cirplot.trait)
+  return(plot(cirplot.trait))
   }
