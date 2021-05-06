@@ -456,7 +456,7 @@ eps = c(1,1,1,1)
 pp.migratory <- hisse.old(data$phy, cbind(rownames(data$data), data$data), f=c(1,1), hidden.states=TRUE, turnover.anc=turnover,
                                       eps.anc=eps, trans.rate=trans.rates.nodual.allequal)
 
-pp.migratory$aic
+pp.migratory$aic #Returning NULL
 
 pp.migrattory.recon = MarginReconHiSSE(data$phy, cbind(rownames(data$data), data$data), f=c(1,1), hidden.states=TRUE, pars=pp.migratory$solution)
   
