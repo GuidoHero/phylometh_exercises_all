@@ -1,0 +1,9 @@
+library(fishtree); 
+library(caper);
+library(geiger);
+library(phytools); 
+library(diversitree); 
+library(phangorn);
+library(corHMM);
+library(tidyverse);
+library(drake)
