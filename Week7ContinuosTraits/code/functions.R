@@ -1,3 +1,9 @@
+
+RunSingleOUwieModel<-function(phy, data, models){
+  mod<-OUwie(phy, data, models, simmap.tree = F, diagn = F, root.age = NULL)
+}
+
+
 CleanData <- function(data, phylo) {
   data$Species <- gsub(' ', '_' , data$Species)
   

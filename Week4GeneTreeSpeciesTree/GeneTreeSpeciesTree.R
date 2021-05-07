@@ -5,7 +5,6 @@ library(ape)
 phy <- get_study_tree("ot_485", "tree1")
 plot(phy, cex=0.3)
 
-
 library(geiger)
 phy <- drop.random(phy, Ntip(phy) - 10)
 plot(phy)

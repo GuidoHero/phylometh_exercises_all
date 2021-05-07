@@ -1,13 +1,13 @@
 plan <- drake_plan(
   tree = fishtree_phylogeny(type = "chronogram"),
   discrete.data = read.csv("data/MigratoryStatusAll.csv", stringsAsFactors=FALSE), #Freshwater fish migratory species of the amazon
-  data.clean =  CleanData(tree, discrete.data),
-  VisualizeData(data.clean$phy, data.clean$data, "results/traitmap"),
+  data.clean = CleanData(tree, discrete.data),
+  #plot = VisualizeData(data.clean$phy, data.clean$data, "results/traitmap"),
   cleaned.discrete.phyDat = phangorn::phyDat(data.clean$data, type="USER",levels=c(0,1)), 
-  anc.p =  phangorn::ancestral.pars(data.clean$phy, cleaned.discrete.phyDat), 
-  phangorn::plotAnc(data.clean$phy, anc.p, pos=1, cex=0.1, cex.pie =0.3, type="fan"),
-  anc.ml =  ancestral.pml(pml(data.clean$phy, cleaned.discrete.phyDat), type="ml"),
-  phangorn::plotAnc(data.clean$phy, anc.ml, pos=1, cex=0.1, cex.pie =0.3, type="fan"),
+  #anc.p = phangorn::ancestral.pars(data.clean$phy, cleaned.discrete.phyDat), 
+  #plot.anc.p = phangorn::plotAnc(data.clean$phy, anc.p, pos=1, cex=0.1, cex.pie =0.3, type="fan"),
+  anc.ml = ancestral.pml(pml(data.clean$phy, cleaned.discrete.phyDat), type="ml"),
+  #plot.anc.ml = phangorn::plotAnc(data.clean$phy, anc.ml, pos=1, cex=0.1, cex.pie =0.3, type="fan"),
   
   ########### BIOLOGICAL QUESTIONS ##################
   #How does this differ from parsimony?#
@@ -26,7 +26,7 @@ plan <- drake_plan(
   
   ##1. How can you estimate transition rates between states? Do it.##
   
-  CalculateTransitionRates =  corHMM::corHMM(data.clean$phy, clean.df(data.clean$data, "Migration"), rate.cat = 1),
+  CalculateTransitionRates =corHMM::corHMM(data.clean$phy, clean.df(data.clean$data, "Migration"), rate.cat = 1),
   
   #2. How could you examine if transition rates are equal?##
   
@@ -41,6 +41,15 @@ plan <- drake_plan(
   #For that reason, seems reasonable to use Lewis (2001) MKV model. However, I do not notice major differences visually with the previous approach.
   
   anc.Mkv =  phangorn::ancestral.pml(pml(data.clean$phy, cleaned.discrete.phyDat, Mkv = TRUE), type="ml"), #MKV through Maximum Likelihood
-  phangorn::plotAnc(data.clean$phy, anc.Mkv, 1, cex=0.1, size=0.0001, cex.pie =0.3, type="fan")
+  #plot.anc.Mkv = phangorn::plotAnc(data.clean$phy, anc.Mkv, 1, cex=0.1, size=0.0001, cex.pie =0.3, type="fan")
   #  4. How could you test order of state evolution?
   )
+
+loadd()
+
+#PM
+phangorn::plotAnc(data.clean$phy, anc.p, pos=1, cex=0.1, cex.pie =0.3, type="fan")
+#ML
+phangorn::plotAnc(data.clean$phy, anc.ml, pos=1, cex=0.1, cex.pie =0.3, type="fan")
+#MKV
+phangorn::plotAnc(data.clean$phy, anc.Mkv, 1, cex=0.1, size=0.0001, cex.pie =0.3, type="fan")
